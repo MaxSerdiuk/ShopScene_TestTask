@@ -864,6 +864,7 @@ GameObject:
   - component: {fileID: 343123815}
   - component: {fileID: 343123814}
   - component: {fileID: 343123813}
+  - component: {fileID: 343123816}
   m_Layer: 0
   m_Name: Item_1
   m_TagString: Untagged
@@ -964,6 +965,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 343123811}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &343123816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343123811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a107dcaaedf6417ca78b56d6bff459e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClick
+  counterTop: {fileID: 335269700}
+  maxItems: 5
 --- !u!1 &372000581
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,6 +991,7 @@ GameObject:
   - component: {fileID: 372000585}
   - component: {fileID: 372000584}
   - component: {fileID: 372000583}
+  - component: {fileID: 372000586}
   m_Layer: 0
   m_Name: Item_2
   m_TagString: Untagged
@@ -1076,6 +1092,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 372000581}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &372000586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372000581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a107dcaaedf6417ca78b56d6bff459e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClick
+  counterTop: {fileID: 335269700}
+  maxItems: 5
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,6 +1245,7 @@ GameObject:
   - component: {fileID: 413355984}
   - component: {fileID: 413355983}
   - component: {fileID: 413355982}
+  - component: {fileID: 413355985}
   m_Layer: 0
   m_Name: Item_5
   m_TagString: Untagged
@@ -1315,6 +1346,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 413355980}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &413355985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 413355980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a107dcaaedf6417ca78b56d6bff459e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClick
+  counterTop: {fileID: 335269700}
+  maxItems: 5
 --- !u!1 &496557792
 GameObject:
   m_ObjectHideFlags: 0
@@ -2119,6 +2164,7 @@ GameObject:
   - component: {fileID: 1200909919}
   - component: {fileID: 1200909918}
   - component: {fileID: 1200909917}
+  - component: {fileID: 1200909920}
   m_Layer: 0
   m_Name: Item_3
   m_TagString: Untagged
@@ -2219,6 +2265,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1200909915}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1200909920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200909915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a107dcaaedf6417ca78b56d6bff459e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClick
+  counterTop: {fileID: 335269700}
+  maxItems: 5
 --- !u!1 &1309883175
 GameObject:
   m_ObjectHideFlags: 0
@@ -2343,6 +2403,7 @@ GameObject:
   - component: {fileID: 1684177991}
   - component: {fileID: 1684177990}
   - component: {fileID: 1684177989}
+  - component: {fileID: 1684177992}
   m_Layer: 0
   m_Name: Item_4
   m_TagString: Untagged
@@ -2443,6 +2504,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684177987}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1684177992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684177987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a107dcaaedf6417ca78b56d6bff459e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClick
+  counterTop: {fileID: 335269700}
+  maxItems: 5
 --- !u!1 &1693957904
 GameObject:
   m_ObjectHideFlags: 0
