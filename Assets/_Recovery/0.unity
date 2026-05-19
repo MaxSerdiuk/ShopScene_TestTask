@@ -1424,8 +1424,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemClick
   counterTop: {fileID: 335269700}
   maxItems: 5
-  positionOffset: {x: 0, y: -0.32, z: 0}
-  rotationOffset: {x: 90, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: 90, y: -25, z: 45}
 --- !u!1001 &384737503
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1755,8 +1755,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemClick
   counterTop: {fileID: 335269700}
   maxItems: 5
-  positionOffset: {x: 0, y: -0.18, z: 0}
-  rotationOffset: {x: 45, y: 37, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: -90, y: 0, z: 0}
 --- !u!1 &496557792
 GameObject:
   m_ObjectHideFlags: 0
@@ -2713,8 +2713,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemClick
   counterTop: {fileID: 335269700}
   maxItems: 5
-  positionOffset: {x: 0, y: -0.1, z: 0}
-  rotationOffset: {x: 65, y: -77, z: -90}
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: 0, y: 0, z: -90}
 --- !u!1001 &1281296005
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3174,8 +3174,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemClick
   counterTop: {fileID: 335269700}
   maxItems: 5
-  positionOffset: {x: 0, y: -0.2, z: 0}
-  rotationOffset: {x: -90, y: 90, z: -90}
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: 0, y: -90, z: 0}
 --- !u!1 &1693957904
 GameObject:
   m_ObjectHideFlags: 0
