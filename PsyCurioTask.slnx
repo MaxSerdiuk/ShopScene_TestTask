@@ -1,6 +1,6 @@
 ﻿<Solution>
   <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="PsyCurioTask.Runtime.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="PsyCurioTask.Runtime.csproj" />
 </Solution>
