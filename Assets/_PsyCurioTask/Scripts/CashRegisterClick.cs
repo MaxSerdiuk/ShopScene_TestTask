@@ -106,12 +106,12 @@ public class CashRegisterClick : MonoBehaviour
 
         // Розраховуємо тривалість: 5 сек + 1 сек на кожен товар
         // 1 товар = 6 сек, 2 = 7 сек, ..., 5 = 10 сек
-        balloonDuration = 5f + itemCount;
+       /*  balloonDuration = 5f + itemCount;
 
-        StartCoroutine(BalloonSequence());
+        StartCoroutine(BalloonSequence()); */
     }
 
-    IEnumerator BalloonSequence()
+/*     IEnumerator BalloonSequence()
     {
         // Чекаємо поки закінчиться час показу бульбашки
         yield return new WaitForSeconds(balloonDuration);
@@ -124,7 +124,7 @@ public class CashRegisterClick : MonoBehaviour
 
         // Очищаємо прилавок
         ClearCounter();
-    }
+    } */
 
     void ClearCounter()
     {
