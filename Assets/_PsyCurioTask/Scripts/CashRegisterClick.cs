@@ -1,38 +1,55 @@
 using UnityEngine;
 using TMPro;
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections; // Обов'язково для корутин (IEnumerator)
 
 public class CashRegisterClick : MonoBehaviour
 {
     [Header("UI")]
-    // Посилання на об'єкт бульбашки з текстом
+    // Бульбашка з текстом
     public GameObject speechBalloon;
-    // Посилання на текстовий компонент бульбашки
+    // Текст усередині бульбашки
     public TextMeshProUGUI speechText;
 
-    [Header("Settings")]
-    // Тривалість показу бульбашки (розраховується автоматично залежно від кількості товарів)
-    public float balloonDuration = 7f;
-
     [Header("Item Prices")]
-    // Ціни кожного товару
+    // Ціни товарів
     public float crownPrice = 10f;
     public float laughingMaskPrice = 3f;
     public float magicWandPrice = 15f;
     public float swordPrice = 3f;
     public float mirrorPrice = 7f;
 
-    // Словник: назва товару → ціна
+    // Singleton: єдина точка доступу до каси для всіх товарів
+    public static CashRegisterClick Instance { get; private set; }
+
+    // Список товарів, які фізично лежать на прилавку
+    private List<GameObject> counterItems = new List<GameObject>();
+    // Словник для швидкого пошуку ціни за назвою об'єкта
     private Dictionary<string, float> itemPrices;
+
+    // Посилання на активну корутину автоприховування (щоб її можна було скасувати)
+    private Coroutine hideBalloonCoroutine;
+
+    void Awake()
+    {
+        // Ініціалізуємо Singleton та знищуємо дублікати, якщо вони є
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
 
     void Start()
     {
-        // Ховаємо бульбашку на старті
+        // Ховаємо балон на старті гри
         speechBalloon.SetActive(false);
 
-        // Заповнюємо словник цінами товарів
-        // Назви з "(Clone)" бо Unity додає це до копій об'єктів
+        // Заповнюємо словник цін (назви мають збігатися з іменами префабів)
         itemPrices = new Dictionary<string, float>
         {
             { "Item_Crown(Clone)", crownPrice },
@@ -45,101 +62,136 @@ public class CashRegisterClick : MonoBehaviour
 
     void OnMouseDown()
     {
-        // Список куплених товарів і загальна сума
-        List<string> boughtItems = new List<string>();
-        float totalPrice = 0f;
-
-        // Знаходимо всі об'єкти у сцені
-        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-
-        // Перевіряємо кожен об'єкт — чи є він товаром на прилавку
-        foreach (GameObject obj in allObjects)
+        // Логіка для ПОРОЖНЬОГО прилавка
+        if (counterItems.Count == 0)
         {
-            if (itemPrices.ContainsKey(obj.name))
+            // Якщо балон уже відкритий і показує "No items selected" — повторний клік його закриває
+            if (speechBalloon.activeSelf && speechText.text == "No items selected")
             {
-                // Очищаємо назву від технічних префіксів для відображення
-                string cleanName = obj.name
-                    .Replace("(Clone)", "")
-                    .Replace("Item_", "")
-                    .Replace("LaughingMask", "Laughing Mask")
-                    .Replace("MagicWand", "Magic Wand")
-                    .Trim();
-                boughtItems.Add(cleanName);
-                totalPrice += itemPrices[obj.name];
+                StopExistingHideCoroutine();
+                speechBalloon.SetActive(false);
             }
+            else
+            {
+                // Інакше — відкриваємо балон і запускаємо таймер на 3 секунди
+                speechBalloon.SetActive(true);
+                speechText.text = "No items selected";
+
+                StopExistingHideCoroutine();
+                hideBalloonCoroutine = StartCoroutine(HideNoItemsBalloonRoutine());
+            }
+            return; // Перериваємо метод, далі рахувати чек не потрібно
         }
 
-        // Якщо товарів на прилавку немає — показуємо повідомлення
-        if (boughtItems.Count == 0)
+        // Логіка, якщо на прилавку Є ТОВАРИ
+        StopExistingHideCoroutine(); // Про всяк випадок зупиняємо таймер помилки
+        speechBalloon.SetActive(true);
+        RefreshBalloon();
+    }
+
+    // Допоміжний метод для безпечної зупинки корутини таймера
+    private void StopExistingHideCoroutine()
+    {
+        if (hideBalloonCoroutine != null)
         {
-            ShowBalloon("No items selected!", 0);
+            StopCoroutine(hideBalloonCoroutine);
+            hideBalloonCoroutine = null;
+        }
+    }
+
+    // Корутина автоматичного приховування повідомлення через 3 секунди
+    IEnumerator HideNoItemsBalloonRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+        speechBalloon.SetActive(false);
+        hideBalloonCoroutine = null;
+    }
+
+    // Метод для додавання товару в список каси (викликається з ItemClick)
+    public void RegisterItem(GameObject item)
+    {
+        // Якщо товар додається, повідомлення "No items selected" більше не актуальне
+        StopExistingHideCoroutine();
+
+        counterItems.Add(item);
+        
+        // Оновлюємо чек у реальному часі, якщо балон зараз відкритий
+        if (speechBalloon.activeSelf)
+        {
+            RefreshBalloon();
+        }
+    }
+
+    // Метод для видалення товару зі списку каси
+    public void UnregisterItem(GameObject item)
+    {
+        if (counterItems.Contains(item))
+        {
+            counterItems.Remove(item);
+        }
+
+        // Оновлюємо чек, або ховаємо його, якщо товарів більше не лишилося
+        if (speechBalloon.activeSelf || counterItems.Count == 0)
+        {
+            RefreshBalloon();
+        }
+    }
+
+    // Повне очищення прилавка
+    public void ClearCounter()
+    {
+        StopExistingHideCoroutine();
+
+        foreach (GameObject item in counterItems)
+        {
+            if (item != null) Destroy(item);
+        }
+
+        counterItems.Clear();
+        ItemClick.ResetCounter();
+        speechBalloon.SetActive(false);
+    }
+
+    // Метод перерахунку суми та формування тексту чека
+    public void RefreshBalloon()
+    {
+        // Якщо товарів немає — просто ховаємо балон (захист)
+        if (counterItems.Count == 0)
+        {
+            speechBalloon.SetActive(false);
             return;
         }
 
-        // Формуємо список товарів з цінами для бульбашки
+        float totalPrice = 0f;
         string itemList = "";
-        foreach (GameObject obj in FindObjectsByType<GameObject>(FindObjectsSortMode.None))
+
+        // Проходимось по всіх товарах на прилавку
+        foreach (GameObject item in counterItems)
         {
-            if (itemPrices.ContainsKey(obj.name))
+            if (item == null) continue;
+
+            string rawName = item.name;
+
+            // Якщо такий товар є у словнику цін
+            if (itemPrices.ContainsKey(rawName))
             {
-                string cleanName = obj.name
+                float price = itemPrices[rawName];
+                totalPrice += price;
+
+                // Робимо назву красивою для гравця (без (Clone) та Item_)
+                string cleanName = rawName
                     .Replace("(Clone)", "")
                     .Replace("Item_", "")
                     .Replace("LaughingMask", "Laughing Mask")
                     .Replace("MagicWand", "Magic Wand")
                     .Trim();
-                // Символ валюти ¤
-                itemList += $"{cleanName}: {itemPrices[obj.name]} ¤\n";
+
+                itemList += $"- {cleanName}: {price} ¤\n";
             }
         }
 
-        // Формуємо фінальне повідомлення з переліком і сумою
-        string message = $"You're going to use:\n\n{itemList}\nYou will owe {totalPrice} ¤";
-        ShowBalloon(message, boughtItems.Count);
-    }
-
-    void ShowBalloon(string message, int itemCount = 0)
-    {
-        // Встановлюємо текст і показуємо бульбашку
-        speechText.text = message;
+        // Виводимо фінальний текст на екран
+        speechText.text = $"You're going to use:\n\n{itemList}\nYou will owe {totalPrice} ¤";
         speechBalloon.SetActive(true);
-
-        // Розраховуємо тривалість: 5 сек + 1 сек на кожен товар
-        // 1 товар = 6 сек, 2 = 7 сек, ..., 5 = 10 сек
-       /*  balloonDuration = 5f + itemCount;
-
-        StartCoroutine(BalloonSequence()); */
-    }
-
-/*     IEnumerator BalloonSequence()
-    {
-        // Чекаємо поки закінчиться час показу бульбашки
-        yield return new WaitForSeconds(balloonDuration);
-
-        // Ховаємо бульбашку
-        speechBalloon.SetActive(false);
-
-        // Чекаємо 3 секунди перед очищенням прилавку
-        yield return new WaitForSeconds(3f);
-
-        // Очищаємо прилавок
-        ClearCounter();
-    } */
-
-    void ClearCounter()
-    {
-        // Знаходимо всі об'єкти у сцені і видаляємо товари з прилавку
-        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-        foreach (GameObject obj in allObjects)
-        {
-            if (itemPrices.ContainsKey(obj.name))
-            {
-                Destroy(obj);
-            }
-        }
-
-        // Скидаємо лічильник товарів у ItemClick
-        ItemClick.ResetCounter();
-        Debug.Log("Counter cleared!");
     }
 }
