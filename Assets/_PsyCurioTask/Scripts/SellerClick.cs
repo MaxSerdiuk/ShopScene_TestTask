@@ -11,9 +11,16 @@ public class SellerClick : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
     }
 
+    // Клік мишкою безпосередньо по продавчині
     void OnMouseDown()
     {
-        if (!isWaving)
+        Wave();
+    }
+
+    // ПУБЛІЧНИЙ МЕТОД: тепер його може викликати і каса CashRegisterClick
+    public void Wave()
+    {
+        if (!isWaving && animator != null)
         {
             // Запускаємо анімацію хвилі
             isWaving = true;
@@ -33,7 +40,10 @@ public class SellerClick : MonoBehaviour
     {
         // Повертаємось до Idle
         isWaving = false;
-        animator.SetBool("IsWaving", false);
+        if (animator != null)
+        {
+            animator.SetBool("IsWaving", false);
+        }
         Debug.Log("Seller stopped waving!");
     }
 }

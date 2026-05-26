@@ -2433,6 +2433,7 @@ GameObject:
   - component: {fileID: 913114863}
   - component: {fileID: 913114865}
   - component: {fileID: 913114864}
+  - component: {fileID: 913114866}
   m_Layer: 5
   m_Name: SpeechBalloon
   m_TagString: Untagged
@@ -2499,6 +2500,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 913114862}
   m_CullTransparentMesh: 1
+--- !u!225 &913114866
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913114862}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &962918156
 GameObject:
   m_ObjectHideFlags: 0
@@ -3130,7 +3143,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1408824695}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2124530218}
+        m_TargetAssemblyTypeName: CashRegisterClick, PsyCurioTask.Runtime
+        m_MethodName: PayAndLeave
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1408824695
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4078,6 +4103,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CashRegisterClick
   speechBalloon: {fileID: 913114862}
   speechText: {fileID: 243857606}
+  payLeaveButton: {fileID: 1408824694}
+  uiCanvasGroup: {fileID: 913114866}
+  seller: {fileID: 1713382999}
   crownPrice: 10
   laughingMaskPrice: 3
   magicWandPrice: 15

@@ -1,38 +1,35 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
-using System.Collections; // Обов'язково для корутин (IEnumerator)
+using System.Collections;
+using UnityEngine.UI;
 
 public class CashRegisterClick : MonoBehaviour
 {
     [Header("UI")]
-    // Бульбашка з текстом
     public GameObject speechBalloon;
-    // Текст усередині бульбашки
     public TextMeshProUGUI speechText;
 
+    [Header("Checkout Flow Dependencies")]
+    public Button payLeaveButton;
+    public CanvasGroup uiCanvasGroup;
+    public SellerClick seller;
+
     [Header("Item Prices")]
-    // Ціни товарів
     public float crownPrice = 10f;
     public float laughingMaskPrice = 3f;
     public float magicWandPrice = 15f;
     public float swordPrice = 3f;
     public float mirrorPrice = 7f;
 
-    // Singleton: єдина точка доступу до каси для всіх товарів
     public static CashRegisterClick Instance { get; private set; }
 
-    // Список товарів, які фізично лежать на прилавку
     private List<GameObject> counterItems = new List<GameObject>();
-    // Словник для швидкого пошуку ціни за назвою об'єкта
     private Dictionary<string, float> itemPrices;
-
-    // Посилання на активну корутину автоприховування (щоб її можна було скасувати)
     private Coroutine hideBalloonCoroutine;
 
     void Awake()
     {
-        // Ініціалізуємо Singleton та знищуємо дублікати, якщо вони є
         if (Instance == null)
         {
             Instance = this;
@@ -46,10 +43,8 @@ public class CashRegisterClick : MonoBehaviour
 
     void Start()
     {
-        // Ховаємо балон на старті гри
         speechBalloon.SetActive(false);
 
-        // Заповнюємо словник цін (назви мають збігатися з іменами префабів)
         itemPrices = new Dictionary<string, float>
         {
             { "Item_Crown(Clone)", crownPrice },
@@ -62,10 +57,11 @@ public class CashRegisterClick : MonoBehaviour
 
     void OnMouseDown()
     {
-        // Логіка для ПОРОЖНЬОГО прилавка
+        if (payLeaveButton != null && !payLeaveButton.interactable) return;
+
+        // ЛОГІКА ДЛЯ ПОРОЖНЬОГО ПРИЛАВКА
         if (counterItems.Count == 0)
         {
-            // Якщо балон уже відкритий і показує "No items selected" — повторний клік його закриває
             if (speechBalloon.activeSelf && speechText.text == "No items selected")
             {
                 StopExistingHideCoroutine();
@@ -73,23 +69,27 @@ public class CashRegisterClick : MonoBehaviour
             }
             else
             {
-                // Інакше — відкриваємо балон і запускаємо таймер на 3 секунди
                 speechBalloon.SetActive(true);
                 speechText.text = "No items selected";
+
+                // НОВА ПРАВКА: Ховаємо кнопку оплати, коли товарів немає
+                if (payLeaveButton != null)
+                {
+                    payLeaveButton.gameObject.SetActive(false);
+                }
 
                 StopExistingHideCoroutine();
                 hideBalloonCoroutine = StartCoroutine(HideNoItemsBalloonRoutine());
             }
-            return; // Перериваємо метод, далі рахувати чек не потрібно
+            return;
         }
 
-        // Логіка, якщо на прилавку Є ТОВАРИ
-        StopExistingHideCoroutine(); // Про всяк випадок зупиняємо таймер помилки
+        // ЛОГІКА, ЯКЩО ТОВАРИ Є
+        StopExistingHideCoroutine();
         speechBalloon.SetActive(true);
         RefreshBalloon();
     }
 
-    // Допоміжний метод для безпечної зупинки корутини таймера
     private void StopExistingHideCoroutine()
     {
         if (hideBalloonCoroutine != null)
@@ -99,7 +99,6 @@ public class CashRegisterClick : MonoBehaviour
         }
     }
 
-    // Корутина автоматичного приховування повідомлення через 3 секунди
     IEnumerator HideNoItemsBalloonRoutine()
     {
         yield return new WaitForSeconds(5.0f);
@@ -107,37 +106,34 @@ public class CashRegisterClick : MonoBehaviour
         hideBalloonCoroutine = null;
     }
 
-    // Метод для додавання товару в список каси (викликається з ItemClick)
     public void RegisterItem(GameObject item)
     {
-        // Якщо товар додається, повідомлення "No items selected" більше не актуальне
-        StopExistingHideCoroutine();
+        if (payLeaveButton != null && !payLeaveButton.interactable) return;
 
+        StopExistingHideCoroutine();
         counterItems.Add(item);
         
-        // Оновлюємо чек у реальному часі, якщо балон зараз відкритий
         if (speechBalloon.activeSelf)
         {
             RefreshBalloon();
         }
     }
 
-    // Метод для видалення товару зі списку каси
     public void UnregisterItem(GameObject item)
     {
+        if (payLeaveButton != null && !payLeaveButton.interactable) return;
+
         if (counterItems.Contains(item))
         {
             counterItems.Remove(item);
         }
 
-        // Оновлюємо чек, або ховаємо його, якщо товарів більше не лишилося
         if (speechBalloon.activeSelf || counterItems.Count == 0)
         {
             RefreshBalloon();
         }
     }
 
-    // Повне очищення прилавка
     public void ClearCounter()
     {
         StopExistingHideCoroutine();
@@ -152,10 +148,9 @@ public class CashRegisterClick : MonoBehaviour
         speechBalloon.SetActive(false);
     }
 
-    // Метод перерахунку суми та формування тексту чека
     public void RefreshBalloon()
     {
-        // Якщо товарів немає — просто ховаємо балон (захист)
+        // Якщо товарів не залишилось — ховаємо весь балон
         if (counterItems.Count == 0)
         {
             speechBalloon.SetActive(false);
@@ -165,20 +160,17 @@ public class CashRegisterClick : MonoBehaviour
         float totalPrice = 0f;
         string itemList = "";
 
-        // Проходимось по всіх товарах на прилавку
         foreach (GameObject item in counterItems)
         {
             if (item == null) continue;
 
             string rawName = item.name;
 
-            // Якщо такий товар є у словнику цін
             if (itemPrices.ContainsKey(rawName))
             {
                 float price = itemPrices[rawName];
                 totalPrice += price;
 
-                // Робимо назву красивою для гравця (без (Clone) та Item_)
                 string cleanName = rawName
                     .Replace("(Clone)", "")
                     .Replace("Item_", "")
@@ -190,8 +182,113 @@ public class CashRegisterClick : MonoBehaviour
             }
         }
 
-        // Виводимо фінальний текст на екран
         speechText.text = $"You're going to use:\n\n{itemList}\nYou will owe {totalPrice} ¤";
+        
+        // НОВА ПРАВКА: Оскільки на прилавку точно є товари — вмикаємо кнопку назад
+        if (payLeaveButton != null)
+        {
+            payLeaveButton.gameObject.SetActive(true);
+        }
+
         speechBalloon.SetActive(true);
+    }
+
+    // ==========================================
+    // ТАЙМЛАЙН INTERACTION FLOW (9.0 сек)
+    // ==========================================
+
+    public void PayAndLeave()
+    {
+        StartCoroutine(PayAndLeaveRoutine());
+    }
+
+    private IEnumerator PayAndLeaveRoutine()
+    {
+        // === ПОЗНАЧКА 0.0 сек ===
+        if (payLeaveButton != null) payLeaveButton.interactable = false;
+        speechText.text = "It's a great choice!\n\nGood luck and see you soon!";
+
+        // === ПАУЗА 3.0 сек ===
+        yield return new WaitForSeconds(3.0f);
+
+        // === ПОЗНАЧКА 3.0 сек ===
+        yield return StartCoroutine(FadeOutUIRoutine(3.0f));
+
+        // === ПОЗНАЧКА 6.0 сек ===
+        yield return StartCoroutine(ShrinkItemsRoutine(3.0f));
+
+        // === ПОЗНАЧКА 9.0 сек (ФІНАЛ) ===
+        if (seller != null)
+        {
+            seller.Wave();
+        }
+
+        CleanupCheckout();
+    }
+
+    private IEnumerator FadeOutUIRoutine(float duration)
+    {
+        float elapsed = 0f;
+        if (uiCanvasGroup != null)
+        {
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                uiCanvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                yield return null;
+            }
+            uiCanvasGroup.alpha = 0f;
+        }
+        else
+        {
+            yield return new WaitForSeconds(duration);
+        }
+
+        if (speechBalloon != null) speechBalloon.SetActive(false);
+    }
+
+    private IEnumerator ShrinkItemsRoutine(float duration)
+    {
+        float elapsed = 0f;
+
+        List<Vector3> originalScales = new List<Vector3>();
+        foreach (GameObject item in counterItems)
+        {
+            if (item != null) originalScales.Add(item.transform.localScale);
+            else originalScales.Add(Vector3.zero);
+        }
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            for (int i = 0; i < counterItems.Count; i++)
+            {
+                if (counterItems[i] != null)
+                {
+                    counterItems[i].transform.localScale = Vector3.Lerp(originalScales[i], Vector3.zero, t);
+                }
+            }
+            yield return null;
+        }
+    }
+
+    private void CleanupCheckout()
+    {
+        foreach (GameObject item in counterItems)
+        {
+            if (item != null) Destroy(item);
+        }
+
+        counterItems.Clear();
+        ItemClick.ResetCounter();
+
+        if (uiCanvasGroup != null) uiCanvasGroup.alpha = 1f;
+        if (payLeaveButton != null)
+        {
+            payLeaveButton.interactable = true;
+            payLeaveButton.gameObject.SetActive(true); // Повертаємо початковий стан відображення кнопки
+        }
     }
 }
