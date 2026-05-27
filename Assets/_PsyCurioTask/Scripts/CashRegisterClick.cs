@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class CashRegisterClick : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("UI References")]
     public GameObject speechBalloon;
     public TextMeshProUGUI speechText;
 
@@ -59,7 +59,7 @@ public class CashRegisterClick : MonoBehaviour
     {
         if (payLeaveButton != null && !payLeaveButton.interactable) return;
 
-        // ЛОГІКА ДЛЯ ПОРОЖНЬОГО ПРИЛАВКА
+        // LOGIC FOR AN EMPTY COUNTER
         if (counterItems.Count == 0)
         {
             if (speechBalloon.activeSelf && speechText.text == "No items selected")
@@ -72,7 +72,7 @@ public class CashRegisterClick : MonoBehaviour
                 speechBalloon.SetActive(true);
                 speechText.text = "No items selected";
 
-                // НОВА ПРАВКА: Ховаємо кнопку оплати, коли товарів немає
+                // Hide the payment button when there are no items on the counter
                 if (payLeaveButton != null)
                 {
                     payLeaveButton.gameObject.SetActive(false);
@@ -84,7 +84,7 @@ public class CashRegisterClick : MonoBehaviour
             return;
         }
 
-        // ЛОГІКА, ЯКЩО ТОВАРИ Є
+        // LOGIC IF THERE ARE ITEMS ON THE COUNTER
         StopExistingHideCoroutine();
         speechBalloon.SetActive(true);
         RefreshBalloon();
@@ -112,6 +112,13 @@ public class CashRegisterClick : MonoBehaviour
 
         StopExistingHideCoroutine();
         counterItems.Add(item);
+
+        // === LIGHT INTEGRATION ===
+        // Notify the glow controller about the item count change (activates if 1-5 items)
+        if (CashRegisterGlow.Instance != null)
+        {
+            CashRegisterGlow.Instance.UpdateGlowState(counterItems.Count);
+        }
         
         if (speechBalloon.activeSelf)
         {
@@ -128,6 +135,13 @@ public class CashRegisterClick : MonoBehaviour
             counterItems.Remove(item);
         }
 
+        // === LIGHT INTEGRATION ===
+        // Notify the glow controller about the updated item count after removal
+        if (CashRegisterGlow.Instance != null)
+        {
+            CashRegisterGlow.Instance.UpdateGlowState(counterItems.Count);
+        }
+
         if (speechBalloon.activeSelf || counterItems.Count == 0)
         {
             RefreshBalloon();
@@ -137,6 +151,13 @@ public class CashRegisterClick : MonoBehaviour
     public void ClearCounter()
     {
         StopExistingHideCoroutine();
+
+        // === LIGHT INTEGRATION ===
+        // Defensive check to turn off the glow during manual or complete counter clear
+        if (CashRegisterGlow.Instance != null)
+        {
+            CashRegisterGlow.Instance.StopBreathing();
+        }
 
         foreach (GameObject item in counterItems)
         {
@@ -150,7 +171,7 @@ public class CashRegisterClick : MonoBehaviour
 
     public void RefreshBalloon()
     {
-        // Якщо товарів не залишилось — ховаємо весь балон
+        // If no items are left, hide the entire speech balloon
         if (counterItems.Count == 0)
         {
             speechBalloon.SetActive(false);
@@ -184,7 +205,7 @@ public class CashRegisterClick : MonoBehaviour
 
         speechText.text = $"You're going to use:\n\n{itemList}\nYou will owe {totalPrice} ¤";
         
-        // НОВА ПРАВКА: Оскільки на прилавку точно є товари — вмикаємо кнопку назад
+        // Since there are items on the counter, ensure the pay button is visible again
         if (payLeaveButton != null)
         {
             payLeaveButton.gameObject.SetActive(true);
@@ -194,7 +215,7 @@ public class CashRegisterClick : MonoBehaviour
     }
 
     // ==========================================
-    // ТАЙМЛАЙН INTERACTION FLOW (9.0 сек)
+    // TIMELINE INTERACTION FLOW (9.0 sec total)
     // ==========================================
 
     public void PayAndLeave()
@@ -204,20 +225,28 @@ public class CashRegisterClick : MonoBehaviour
 
     private IEnumerator PayAndLeaveRoutine()
     {
-        // === ПОЗНАЧКА 0.0 сек ===
+        // === TIMESTAMP 0.0 sec ===
         if (payLeaveButton != null) payLeaveButton.interactable = false;
         speechText.text = "It's a great choice!\n\nGood luck and see you soon!";
 
-        // === ПАУЗА 3.0 сек ===
+        // === LIGHT INTEGRATION ===
+        // Once payment is pressed, the green light immediately starts fading out smoothly
+        // while the farewell dialogue and other UI/shrink animations play out
+        if (CashRegisterGlow.Instance != null)
+        {
+            CashRegisterGlow.Instance.StopBreathing();
+        }
+
+        // === PAUSE 3.0 sec ===
         yield return new WaitForSeconds(3.0f);
 
-        // === ПОЗНАЧКА 3.0 сек ===
+        // === TIMESTAMP 3.0 sec ===
         yield return StartCoroutine(FadeOutUIRoutine(3.0f));
 
-        // === ПОЗНАЧКА 6.0 сек ===
+        // === TIMESTAMP 6.0 sec ===
         yield return StartCoroutine(ShrinkItemsRoutine(3.0f));
 
-        // === ПОЗНАЧКА 9.0 сек (ФІНАЛ) ===
+        // === TIMESTAMP 9.0 sec (FINAL) ===
         if (seller != null)
         {
             seller.Wave();
@@ -288,7 +317,7 @@ public class CashRegisterClick : MonoBehaviour
         if (payLeaveButton != null)
         {
             payLeaveButton.interactable = true;
-            payLeaveButton.gameObject.SetActive(true); // Повертаємо початковий стан відображення кнопки
+            payLeaveButton.gameObject.SetActive(true); // Restore the initial visibility state of the button
         }
     }
 }
