@@ -226,12 +226,15 @@ public class CashRegisterClick : MonoBehaviour
     private IEnumerator PayAndLeaveRoutine()
     {
         // === TIMESTAMP 0.0 sec ===
-        if (payLeaveButton != null) payLeaveButton.interactable = false;
+        if (payLeaveButton != null) 
+        {
+            payLeaveButton.interactable = false;
+            payLeaveButton.gameObject.SetActive(false); // Hide the button immediately to prevent double-clicks
+        }
         speechText.text = "It's a great choice!\n\nGood luck and see you soon!";
 
         // === LIGHT INTEGRATION ===
         // Once payment is pressed, the green light immediately starts fading out smoothly
-        // while the farewell dialogue and other UI/shrink animations play out
         if (CashRegisterGlow.Instance != null)
         {
             CashRegisterGlow.Instance.StopBreathing();
