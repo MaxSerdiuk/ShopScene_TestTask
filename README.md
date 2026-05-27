@@ -10,10 +10,13 @@ A simple Unity shop scene created for the PsyCurio technical task.
 ## Features
 ### Core Gameplay
 - Click a shelf item to place a copy on the counter (maximum 5 items)
-- Click the cash register to checkout selected items
-- Speech balloon displays selected items and total price
-- Counter resets automatically after checkout
+- Click a counter item to remove it from the counter
+- Click the cash register to see selected items and total price
+- Speech balloon updates live as items are added or removed
+- Pay & Leave button to confirm purchase and trigger checkout sequence
+- Persistent dialogue: balloon stays visible until dismissed or purchase is confirmed
 - Click the seller character to trigger waving animation
+
 ### Visuals
 - 3D models for all shelf items:
   - Crown
@@ -27,11 +30,14 @@ A simple Unity shop scene created for the PsyCurio technical task.
   - Gravel floor
   - Wooden counter
 - Mixamo character with idle and waving animations
+- Breathing green light on cash register when items are on the counter
 
 ## Controls
 All interactions use mouse clicks:
 - Click shelf items to add them to the counter
-- Click the cash register to checkout
+- Click counter items to remove them
+- Click the cash register to open the checkout balloon
+- Click Pay & Leave to complete the purchase
 - Click the seller character to wave
 
 ## Unit Tests
