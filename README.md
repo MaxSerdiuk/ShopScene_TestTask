@@ -11,10 +11,10 @@ A simple Unity shop scene created for the PsyCurio technical task.
 ### Core Gameplay
 - Click a shelf item to place a copy on the counter (maximum 5 items)
 - Click a counter item to remove it from the counter
-- Click the cash register to see selected items and total price
+- Click the cash register to see selected items and total price in a speech balloon
 - Speech balloon updates live as items are added or removed
-- Pay & Leave button to confirm purchase and trigger checkout sequence
-- Persistent dialogue: balloon stays visible until dismissed or purchase is confirmed
+- Pay & Leave button to confirm purchase and trigger animated checkout sequence
+- Persistent dialogue: once activated, speech balloon stays visible until all the items are removed or purchase is confirmed
 - Click the seller character to trigger waving animation
 
 ### Visuals
