@@ -4,42 +4,42 @@ using System.Collections;
 public class ItemClick : MonoBehaviour
 {
     [Header("Settings")]
-    // Точка прив'язки на прилавку
+    // Anchor point on the counter for placing items
     public Transform counterTop;
-    // Максимальна кількість товарів на прилавку
+    // Maximum number of items allowed on the counter
     public int maxItems = 5;
 
     [Header("Placement Offset")]
-    // Зміщення позиції та обертання для красивого розташування
+    // Position and rotation offsets for proper visual alignment
     public Vector3 positionOffset = Vector3.zero;
     public Vector3 rotationOffset = Vector3.zero;
 
-    // Глобальний лічильник для перевірки ліміту товарів
+    // Global counter to enforce the item limit
     private static int currentItemCount = 0;
     
-    // Глобальний масив "паркувальних місць", який підлаштовується під maxItems
+    // Global array representing "parking slots" on the counter, bounded by maxItems
     private static bool[] occupiedSlots; 
 
-    // Чи є цей конкретний об'єкт клоном на прилавку (а не оригіналом на полиці)
+    // Indicates if this specific object is a clone sitting on the counter (not the shelf original)
     private bool isCounterItem = false;
     
-    // Захист від подвійного кліку під час зникнення товару
+    // Prevents double-clicking while the item is already being removed
     private bool isDisappearing = false;
     
-    // Номер паркувального місця (слота), яке займає ЦЕЙ клон
+    // The specific parking slot index occupied by this clone
     private int mySlotIndex = -1; 
 
-    // --- МЕТОД ДЛЯ ЗВ'ЯЗКУ З CounterGlow ---
-    // Дозволяє іншим скриптам безпечно дізнатися кількість товарів
+    // --- METHOD FOR COMMUNICATION WITH CounterGlow ---
+    // Allows other scripts to safely retrieve the current item count
     public static int GetCurrentItemCount()
     {
         return currentItemCount;
     }
-    // ----------------------------------------
+    // ---------------------------------------------------
 
     void Awake()
     {
-        // Ініціалізуємо парковку один раз на старті
+        // Initialize the slot parking array once on startup
         if (occupiedSlots == null || occupiedSlots.Length != maxItems)
         {
             occupiedSlots = new bool[maxItems];
@@ -48,7 +48,7 @@ public class ItemClick : MonoBehaviour
 
     void OnMouseDown()
     {
-        // Якщо клікнули по товару, який ВЖЕ лежить на прилавку
+        // Logic for clicking an item that is ALREADY on the counter
         if (isCounterItem)
         {
             if (isDisappearing) return;
@@ -56,7 +56,7 @@ public class ItemClick : MonoBehaviour
             return;
         }
 
-        // Якщо клікнули по товару на полиці, але прилавок переповнений
+        // Logic for clicking a shelf item when the counter is full
         if (currentItemCount >= maxItems)
         {
             Debug.Log("Counter is full! Maximum " + maxItems + " items.");
@@ -68,7 +68,7 @@ public class ItemClick : MonoBehaviour
 
     void PlaceItemOnCounter()
     {
-        // 1. Шукаємо перше ВІЛЬНЕ місце
+        // 1. Find the first available empty slot
         int availableSlot = -1;
         for (int i = 0; i < maxItems; i++)
         {
@@ -81,14 +81,14 @@ public class ItemClick : MonoBehaviour
 
         if (availableSlot == -1) return;
 
-        // 2. Створюємо копію товару
+        // 2. Create a clone of the item
         GameObject copy = Instantiate(gameObject);
         ItemClick copyClick = copy.GetComponent<ItemClick>();
         copyClick.isCounterItem = true;
         copyClick.mySlotIndex = availableSlot;
         occupiedSlots[availableSlot] = true;
 
-        // 3. Переміщуємо та обертаємо клон
+        // 3. Move and rotate the clone to the proper slot on the counter
         copy.transform.position = new Vector3(
             counterTop.position.x + (availableSlot * 0.9f),
             counterTop.position.y + 0.5f + positionOffset.y,
@@ -96,7 +96,7 @@ public class ItemClick : MonoBehaviour
         );
         copy.transform.rotation = Quaternion.Euler(rotationOffset);
 
-        // 4. Оновлюємо лічильник
+        // 4. Update the global counter
         currentItemCount++;
         
         if (CashRegisterClick.Instance != null)
@@ -105,34 +105,36 @@ public class ItemClick : MonoBehaviour
         }
     }
 
+    // RESTORED TO ORIGINAL LOGIC: Just waits 1 second and destroys the object
     IEnumerator RemoveFromCounterRoutine()
     {
-        // Блокуємо повторний клік
+        // Block double-clicking
         isDisappearing = true;
 
-        // Зменшуємо лічильник
+        // Decrease global counter
         if (currentItemCount > 0)
         {
             currentItemCount--;
         }
         
-        // Звільняємо слот
+        // Free up the parking slot
         if (mySlotIndex != -1)
         {
             occupiedSlots[mySlotIndex] = false;
         }
 
+        // Unregister from the cash register logic immediately
         if (CashRegisterClick.Instance != null)
         {
             CashRegisterClick.Instance.UnregisterItem(gameObject);
         }
 
-        // Затримка перед знищенням
-        yield return new WaitForSeconds(1.0f);
+        // Delay before destruction (Original logic restored)
+        yield return new WaitForSeconds(0.5f);
         Destroy(gameObject);
     }
 
-    // Метод для повного скидання
+    // Method to fully reset the counter state (used during final checkout)
     public static void ResetCounter()
     {
         currentItemCount = 0;

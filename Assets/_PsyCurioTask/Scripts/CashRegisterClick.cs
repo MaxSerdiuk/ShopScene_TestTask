@@ -30,6 +30,7 @@ public class CashRegisterClick : MonoBehaviour
 
     void Awake()
     {
+        // Singleton pattern to ensure only one active CashRegisterClick
         if (Instance == null)
         {
             Instance = this;
@@ -57,6 +58,7 @@ public class CashRegisterClick : MonoBehaviour
 
     void OnMouseDown()
     {
+        // Ignore clicks if the pay button is already pressed (checkout in progress)
         if (payLeaveButton != null && !payLeaveButton.interactable) return;
 
         // LOGIC FOR AN EMPTY COUNTER
@@ -114,7 +116,6 @@ public class CashRegisterClick : MonoBehaviour
         counterItems.Add(item);
 
         // === LIGHT INTEGRATION ===
-        // Notify the glow controller about the item count change (activates if 1-5 items)
         if (CashRegisterGlow.Instance != null)
         {
             CashRegisterGlow.Instance.UpdateGlowState(counterItems.Count);
@@ -136,7 +137,6 @@ public class CashRegisterClick : MonoBehaviour
         }
 
         // === LIGHT INTEGRATION ===
-        // Notify the glow controller about the updated item count after removal
         if (CashRegisterGlow.Instance != null)
         {
             CashRegisterGlow.Instance.UpdateGlowState(counterItems.Count);
@@ -153,7 +153,6 @@ public class CashRegisterClick : MonoBehaviour
         StopExistingHideCoroutine();
 
         // === LIGHT INTEGRATION ===
-        // Defensive check to turn off the glow during manual or complete counter clear
         if (CashRegisterGlow.Instance != null)
         {
             CashRegisterGlow.Instance.StopBreathing();
@@ -171,7 +170,6 @@ public class CashRegisterClick : MonoBehaviour
 
     public void RefreshBalloon()
     {
-        // If no items are left, hide the entire speech balloon
         if (counterItems.Count == 0)
         {
             speechBalloon.SetActive(false);
@@ -205,7 +203,6 @@ public class CashRegisterClick : MonoBehaviour
 
         speechText.text = $"You're going to use:\n\n{itemList}\nYou will owe {totalPrice} ¤";
         
-        // Since there are items on the counter, ensure the pay button is visible again
         if (payLeaveButton != null)
         {
             payLeaveButton.gameObject.SetActive(true);
@@ -215,7 +212,7 @@ public class CashRegisterClick : MonoBehaviour
     }
 
     // ==========================================
-    // TIMELINE INTERACTION FLOW (9.0 sec total)
+    // TIMELINE INTERACTION FLOW
     // ==========================================
 
     public void PayAndLeave()
@@ -225,31 +222,25 @@ public class CashRegisterClick : MonoBehaviour
 
     private IEnumerator PayAndLeaveRoutine()
     {
-        // === TIMESTAMP 0.0 sec ===
         if (payLeaveButton != null) 
         {
             payLeaveButton.interactable = false;
-            payLeaveButton.gameObject.SetActive(false); // Hide the button immediately to prevent double-clicks
+            payLeaveButton.gameObject.SetActive(false);
         }
         speechText.text = "It's a great choice!\n\nGood luck and see you soon!";
 
-        // === LIGHT INTEGRATION ===
-        // Once payment is pressed, the green light immediately starts fading out smoothly
         if (CashRegisterGlow.Instance != null)
         {
             CashRegisterGlow.Instance.StopBreathing();
         }
 
-        // === PAUSE 3.0 sec ===
         yield return new WaitForSeconds(3.0f);
 
-        // === TIMESTAMP 3.0 sec ===
         yield return StartCoroutine(FadeOutUIRoutine(3.0f));
 
-        // === TIMESTAMP 6.0 sec ===
-        yield return StartCoroutine(ShrinkItemsRoutine(3.0f));
+        // === SEQUENTIAL ITEM PICKUP ===
+        yield return StartCoroutine(TakeItemsSequentiallyRoutine());
 
-        // === TIMESTAMP 9.0 sec (FINAL) ===
         if (seller != null)
         {
             seller.Wave();
@@ -279,30 +270,74 @@ public class CashRegisterClick : MonoBehaviour
         if (speechBalloon != null) speechBalloon.SetActive(false);
     }
 
-    private IEnumerator ShrinkItemsRoutine(float duration)
+    private IEnumerator TakeItemsSequentiallyRoutine()
     {
-        float elapsed = 0f;
+        if (counterItems.Count == 0) yield break;
 
-        List<Vector3> originalScales = new List<Vector3>();
-        foreach (GameObject item in counterItems)
+        float moveDuration = 0.6f;      
+        
+        // 1. Calculate the absolute position of Parking Slot 0 (the leftmost space)
+        Vector3 slot0Pos = counterItems[0].transform.position; // Default fallback
+        ItemClick itemLogic = counterItems[0].GetComponent<ItemClick>();
+        
+        if (itemLogic != null && itemLogic.counterTop != null)
         {
-            if (item != null) originalScales.Add(item.transform.localScale);
-            else originalScales.Add(Vector3.zero);
+            // We reconstruct the exact coordinate of Slot 0 dynamically
+            slot0Pos = new Vector3(
+                itemLogic.counterTop.position.x, // Slot 0 has no (availableSlot * 0.9f) offset
+                itemLogic.counterTop.position.y + 0.5f + itemLogic.positionOffset.y,
+                itemLogic.counterTop.position.z + itemLogic.positionOffset.z
+            );
         }
 
+        // 2. Calculate the SINGLE common target point for ALL items based on Slot 0
+        Camera mainCam = Camera.main;
+        Vector3 commonTargetPos = slot0Pos - mainCam.transform.up * 1.2f - mainCam.transform.forward * 2.5f;
+
+        // 3. Move items strictly one after another towards the common target
+        for (int i = 0; i < counterItems.Count; i++)
+        {
+            GameObject item = counterItems[i];
+            if (item != null)
+            {
+                // yield return StartCoroutine forces the loop to wait until this specific item's animation is 100% finished
+                yield return StartCoroutine(AnimateItemTake(item, moveDuration, commonTargetPos));
+            }
+        }
+    }
+
+    // UPDATED TRAJECTORY ANIMATION WITH FIXED COMMON TARGET
+    private IEnumerator AnimateItemTake(GameObject item, float duration, Vector3 targetPos)
+    {
+        if (item == null) yield break;
+
+        Vector3 startPos = item.transform.position;
+        Vector3 startScale = item.transform.localScale;
+        
+        float elapsed = 0f;
         while (elapsed < duration)
         {
-            elapsed += Time.deltaTime;
+            if (item == null) break;
+            
             float t = elapsed / duration;
-
-            for (int i = 0; i < counterItems.Count; i++)
-            {
-                if (counterItems[i] != null)
-                {
-                    counterItems[i].transform.localScale = Vector3.Lerp(originalScales[i], Vector3.zero, t);
-                }
-            }
+            
+            // SmoothStep easing for premium game feel
+            float smoothT = Mathf.SmoothStep(0f, 1f, t); 
+            
+            // Apply position transition to the fixed common targetPos
+            item.transform.position = Vector3.Lerp(startPos, targetPos, smoothT);
+            
+            // Fine-tuned 1.15x scale to avoid breaking immersion
+            float scaleMultiplier = Mathf.Lerp(1f, 1.15f, smoothT);
+            item.transform.localScale = startScale * scaleMultiplier;
+            
+            elapsed += Time.deltaTime;
             yield return null;
+        }
+
+        if (item != null)
+        {
+            item.SetActive(false); 
         }
     }
 
@@ -320,7 +355,7 @@ public class CashRegisterClick : MonoBehaviour
         if (payLeaveButton != null)
         {
             payLeaveButton.interactable = true;
-            payLeaveButton.gameObject.SetActive(true); // Restore the initial visibility state of the button
+            payLeaveButton.gameObject.SetActive(true); 
         }
     }
 }
