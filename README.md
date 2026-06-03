@@ -1,4 +1,4 @@
-# PsyCurio Unity Task
+# Unity Shop Scene — Test Task
 A simple Unity shop scene created for the PsyCurio technical task.
 
 ## Tech Stack
